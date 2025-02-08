@@ -18,7 +18,7 @@ export const Loader = () => {
         position: 'fixed',
         top: 0,
         left: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(148, 185, 245, 0.8)',
         zIndex: 9999,
       }}
     />

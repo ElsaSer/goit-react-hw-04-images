@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { Component } from 'react';
 import axios from 'axios';
 import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -9,39 +9,49 @@ import { Modal } from './Modal/Modal';
 
 const API_KEY = '47324612-8ceed49284fd3133cd5b6cb67';
 
-export const App = () => {
-  const [images, setImages] = useState([]);
-  const [query, setQuery] = useState('');
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [largeImageURL, setLargeImageURL] = useState('');
-
-  const openModal = largeImageURL => {
-    setShowModal(true);
-    setLargeImageURL(largeImageURL);
+export class App extends Component {
+  state = {
+    images: [],
+    query: '',
+    page: 1,
+    loading: false,
+    showModal: false,
+    largeImageURL: '',
   };
 
-  const closeModal = () => setShowModal(false);
+  openModal = largeImageURL => {
+    this.setState({
+      showModal: true,
+      largeImageURL,
+    });
+  };
 
-  const handleSearchSubmit = query => {
+  closeModal = () => {
+    this.setState({
+      showModal: false,
+    });
+  };
+
+  handleSearchSubmit = query => {
     if (query.trim() === '') return;
-    setQuery(query);
-    setPage(1);
-    setImages([]);
+    this.setState({ query, page: 1, images: [] });
   };
 
-  const handleLoadMore = () => {
-    setPage(prevState => prevState + 1);
+  handleLoadMore = () => {
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
   };
 
-  useEffect(() => {
-    if (query === '') return;
-    fetchImages(query, page);
-  }, [query, page]);
+  componentDidUpdate(prevProps, prevState) {
+    const { query, page } = this.state;
+    if (prevState.query !== query || prevState.page !== page) {
+      this.fetchImages(query, page);
+    }
+  }
 
-  const fetchImages = async (query, page) => {
-    setLoading(true);
+  fetchImages = async (query, page) => {
+    this.setState({ loading: true });
     try {
       const response = await axios.get('https://pixabay.com/api/', {
         params: {
@@ -53,24 +63,33 @@ export const App = () => {
           per_page: 12,
         },
       });
-      setImages(prevState => [...prevState, ...response.data.hits]);
-      setLoading(false);
+      this.setState(prevState => ({
+        images: [...prevState.images, ...response.data.hits],
+        loading: false,
+      }));
     } catch (error) {
       console.error('Error fetching images', error);
-      setLoading(false);
+      this.setState({ loading: false });
     }
   };
-  return (
-    <>
-      <div className="maneDiv">
-        <Searchbar onSubmit={handleSearchSubmit}></Searchbar>
-        {loading && <Loader />}
-        <ImageGallery images={images} onImageClick={openModal}></ImageGallery>
-        {images.length > 0 && <Button onClick={handleLoadMore} />}
-      </div>
-      {showModal && (
-        <Modal largeImageURL={largeImageURL} onClose={closeModal} />
-      )}
-    </>
-  );
-};
+
+  render() {
+    const { images, loading, largeImageURL, showModal } = this.state;
+    return (
+      <>
+        <div className="maneDiv">
+          <Searchbar onSubmit={this.handleSearchSubmit}></Searchbar>
+          {loading && <Loader />}
+          <ImageGallery
+            images={images}
+            onImageClick={this.openModal}
+          ></ImageGallery>
+          {images.length > 0 && <Button onClick={this.handleLoadMore} />}
+        </div>
+        {showModal && (
+          <Modal largeImageURL={largeImageURL} onClose={this.closeModal} />
+        )}
+      </>
+    );
+  }
+}
