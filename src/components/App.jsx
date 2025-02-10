@@ -7,7 +7,7 @@ import { Loader } from './Loader/Loader';
 import './App.css';
 import { Modal } from './Modal/Modal';
 
-const API_KEY = '47324612-8ceed49284fd3133cd5b6cb67';
+const API_KEY = '47193227-eb3ce661dcb56760e85b83cac';
 
 export class App extends Component {
   state = {
